@@ -1,7 +1,8 @@
-FROM node:16 as builder
+FROM node:18 as builder
 
 WORKDIR /build
 COPY web/package.json .
+RUN npm config set registry https://registry.npmmirror.com
 RUN npm install
 COPY ./web .
 COPY ./VERSION .
@@ -14,11 +15,14 @@ ENV GO111MODULE=on \
     GOOS=linux
 
 WORKDIR /build
+RUN go env -w GO111MODULE=on
+RUN go env -w GOPROXY=https://goproxy.io,direct
 ADD go.mod go.sum ./
 RUN go mod download
 COPY . .
 COPY --from=builder /build/dist ./web/dist
-RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)' -extldflags '-static'" -o one-api
+RUN go mod tidy
+RUN go build -mod=mod -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)' -extldflags '-static'" -o one-api
 
 FROM alpine
 
