@@ -1,0 +1,30 @@
+.furry{
+  // 自定义表格样式
+  .vxe-table--render-wrapper,.vxe-table--main-wrapper,.vxe-table--body-wrapper,.vxe-table--body,.vxe-table--header,.vxe-table--header-wrapper{
+    background-color: transparent !important;
+  }
+  // 自定义分页样式
+  .vxe-pager,.vxe-pager--next-btn,.vxe-pager--jump-next,.vxe-pager--prev-btn,.vxe-pager--jump-prev,.vxe-input--suffix{
+    background-color: transparent !important;
+  }
+  .vxe-input{
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  // 自定义tip样式
+  .vxe-tip{
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(5px) !important;
+  }
+  // 自定义表单样式
+  .vxe-form {
+    background-color: transparent !important;
+  }
+}

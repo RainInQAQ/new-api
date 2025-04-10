@@ -1,0 +1,5 @@
+dist
+*.md
+*.html
+yarn.lock
+package-lock.json

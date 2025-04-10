@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"one-api/common"
 	"one-api/constant"
 	"one-api/controller"
@@ -19,6 +18,8 @@ import (
 	"one-api/service"
 	"os"
 	"strconv"
+
+	_ "net/http/pprof"
 )
 
 //go:embed web/dist
@@ -30,7 +31,6 @@ var indexPage []byte
 func main() {
 	common.SetupLogger()
 	common.SysLog("New API " + common.Version + " started")
-
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -39,6 +39,11 @@ func main() {
 	}
 	// Initialize SQL Database
 	err := model.InitDB()
+	if err != nil {
+		common.FatalLog("failed to initialize database: " + err.Error())
+	}
+	// Initialize SQL Database
+	err = model.InitLogDB()
 	if err != nil {
 		common.FatalLog("failed to initialize database: " + err.Error())
 	}

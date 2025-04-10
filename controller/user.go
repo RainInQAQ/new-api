@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
+	"one-api/constant"
 )
 
 type LoginRequest struct {
@@ -173,15 +174,16 @@ func Signing(c *gin.Context) {
 	var message string
 	var zero int = 0
 
-	if userById.LinuxDoLevel >= 2 {
+	if common.SigningEnabled && userById.LinuxDoLevel >= common.SigningLevel {
 
-		*userById.SigningPeriod += 1
-		randomIncrease = rand.Intn(50001) + 50000
-		userById.Quota += randomIncrease
+		if common.UpperQuota >= userById.Quota {
+			*userById.SigningPeriod += 1
+			//randomIncrease = rand.Intn(50001) + 50000
+			randomIncrease = rand.Intn(common.SigningQuota)
+			userById.Quota += randomIncrease
 
-		if 3 == userById.LinuxDoLevel || "vip" == userById.Group {
+			//if 3 == userById.LinuxDoLevel  {
 			// 在非第7天有概率增加积分然后重置签到周期
-			//if userById.LinuxDoLevel > 2 && *userById.SigningPeriod < 7 && rand.Float32() < 0.1 {
 			// 每次签到0.1概率触发增幅
 			if rand.Float32() < 0.1 {
 				randomIncrease += rand.Intn(50001) + 50000
@@ -201,26 +203,20 @@ func Signing(c *gin.Context) {
 			} else {
 				message = fmt.Sprintf("又是普普通通的一天啊😳，今日签到赠送 %s ~", common.LogQuota(randomIncrease))
 			}
-
-			//else if *userById.SigningPeriod == 7 && *userById.IncrementState {
-			//	*userById.IncrementState = false
-			//	userById.SigningPeriod = &zero
-			//	message = fmt.Sprintf("今日签到赠送 %s 签到进度 %d/7", common.LogQuota(randomIncrease), *userById.SigningPeriod)
 			//}
-
-		}
-
-		if 2 == userById.LinuxDoLevel {
-			//if *userById.SigningPeriod == 7 {
-			//	*userById.IncrementState = false
-			//	userById.SigningPeriod = &zero
-			//}
-			//message = fmt.Sprintf("今日签到赠送 %s 签到进度 %d/7", common.LogQuota(randomIncrease), *userById.SigningPeriod)
-			message = fmt.Sprintf("2级用户暂时停止签到，已有额度不受影响.请尽快提升为3级，感谢支持！😋")
-			model.RecordLog(user.Id, model.LogTypeSystem, message)
-			sendResponse(c, http.StatusOK, message, true)
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "签到失败，您的余额已达上限。",
+				"success": false,
+			})
 			return
 		}
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "暂不符合签到要求，如有需求请联系管理员。",
+			"success": false,
+		})
+		return
 	}
 
 	userById.LastSignIn = now
@@ -230,7 +226,7 @@ func Signing(c *gin.Context) {
 		return
 	}
 
-	model.RecordLog(user.Id, model.LogTypeSystem, message)
+	model.RecordLog(user.Id, model.LogTypeSigning, message)
 	sendResponse(c, http.StatusOK, message, true)
 }
 
@@ -321,6 +317,39 @@ func Register(c *gin.Context) {
 		})
 		return
 	}
+
+	// 获取插入后的用户ID
+	var insertedUser model.User
+	if err := model.DB.Where("username = ?", cleanUser.Username).First(&insertedUser).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "用户注册失败或用户ID获取失败",
+		})
+		return
+	}
+	// 生成默认令牌
+	if constant.GenerateDefaultToken {
+		// 生成默认令牌
+		token := model.Token{
+			UserId:             insertedUser.Id, // 使用插入后的用户ID
+			Name:               cleanUser.Username + "的初始令牌",
+			Key:                common.GenerateKey(),
+			CreatedTime:        common.GetTimestamp(),
+			AccessedTime:       common.GetTimestamp(),
+			ExpiredTime:        -1,     // 永不过期
+			RemainQuota:        500000, // 示例额度
+			UnlimitedQuota:     true,
+			ModelLimitsEnabled: false,
+		}
+		if err := token.Insert(); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "创建默认令牌失败",
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -511,6 +540,9 @@ func GetSelf(c *gin.Context) {
 		})
 		return
 	}
+	if 0 == user.UserUpperQuota {
+		user.UserUpperQuota = common.UpperQuota
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -638,6 +670,35 @@ func UpdateSelf(c *gin.Context) {
 	}
 	updatePassword := user.Password != ""
 	if err := cleanUser.Update(updatePassword); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+	})
+	return
+}
+
+func UpdateUserAgreement(c *gin.Context) {
+	var user model.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		sendResponse(c, http.StatusBadRequest, "Invalid request body", false)
+		return
+	}
+
+	if false == user.UserAgreement {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "好好好，改参数是吧？你论坛用户我记下了，呸！",
+		})
+		return
+	}
+	if err := user.UpdateUserAgreement(user.UserAgreement); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": err.Error(),

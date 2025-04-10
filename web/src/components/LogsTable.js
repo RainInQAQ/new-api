@@ -91,6 +91,20 @@ function renderType(type) {
           系统{' '}
         </Tag>
       );
+    case 5:
+      return (
+        <Tag color='red' size='large'>
+          {' '}
+          审核{' '}
+        </Tag>
+      );
+    case 6:
+      return (
+        <Tag color='green' size='large'>
+          {' '}
+          签到{' '}
+        </Tag>
+      );
     default:
       return (
         <Tag color='black' size='large'>
@@ -182,7 +196,7 @@ const LogsTable = () => {
       className: isAdmin() ? 'tableShow' : 'tableHiddle',
       render: (text, record, index) => {
         return isAdminUser ? (
-          record.type === 0 || record.type === 2 ? (
+          record.type === 0 || record.type === 2 || record.type === 5 ? (
             <div>
               {
                 <Tag
@@ -228,7 +242,7 @@ const LogsTable = () => {
       title: '令牌',
       dataIndex: 'token_name',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <div>
             <Tag
               color='grey'
@@ -257,7 +271,7 @@ const LogsTable = () => {
       title: '模型',
       dataIndex: 'model_name',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <div>
             <Tag
               color={stringToColor(text)}
@@ -306,7 +320,7 @@ const LogsTable = () => {
       title: '提示',
       dataIndex: 'prompt_tokens',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <div>{<span> {text} </span>}</div>
         ) : (
           <></>
@@ -318,7 +332,7 @@ const LogsTable = () => {
       dataIndex: 'completion_tokens',
       render: (text, record, index) => {
         return parseInt(text) > 0 &&
-          (record.type === 0 || record.type === 2) ? (
+          (record.type === 0 || record.type === 2 || record.type === 5) ? (
           <div>{<span> {text} </span>}</div>
         ) : (
           <></>
@@ -329,7 +343,7 @@ const LogsTable = () => {
       title: '花费',
       dataIndex: 'quota',
       render: (text, record, index) => {
-        return record.type === 0 || record.type === 2 ? (
+        return record.type === 0 || record.type === 2 || record.type === 5 ? (
           <div>{renderQuota(text, 6)}</div>
         ) : (
           <></>
@@ -410,7 +424,7 @@ const LogsTable = () => {
       title: 'QA',
       dataIndex: 'qa',
       render: (text, record, index) => {
-        if (record.type === 0 || record.type === 2) {
+        if (record.type === 0 || record.type === 2 || record.type === 5) {
           return (
             <Paragraph
               ellipsis={{
@@ -445,8 +459,6 @@ const LogsTable = () => {
   const [activePage, setActivePage] = useState(1);
   const [logCount, setLogCount] = useState(ITEMS_PER_PAGE);
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [searching, setSearching] = useState(false);
   const [logType, setLogType] = useState(0);
   const isAdminUser = isAdmin();
   let now = new Date();
@@ -548,10 +560,7 @@ const LogsTable = () => {
       logs[i].timestamp2string = timestamp2string(logs[i].created_at);
       logs[i].key = '' + logs[i].id;
     }
-    // data.key = '' + data.id
     setLogs(logs);
-    setLogCount(logs.length + ITEMS_PER_PAGE);
-    // console.log(logCount);
   };
 
   const loadLogs = async (startIdx, pageSize, logType = 0) => {
@@ -569,37 +578,28 @@ const LogsTable = () => {
     const res = await API.get(url);
     const { success, message, data } = res.data;
     if (success) {
-      if (startIdx === 0) {
-        setLogsFormat(data);
-      } else {
-        let newLogs = [...logs];
-        newLogs.splice(startIdx * pageSize, data.length, ...data);
-        setLogsFormat(newLogs);
-      }
+      const newPageData = data.items;
+      setActivePage(data.page);
+      setPageSize(data.page_size);
+      setLogCount(data.total);
+
+      setLogsFormat(newPageData);
     } else {
       showError(message);
     }
     setLoading(false);
   };
 
-  const pageData = logs.slice(
-    (activePage - 1) * pageSize,
-    activePage * pageSize,
-  );
-
   const handlePageChange = (page) => {
     setActivePage(page);
-    if (page === Math.ceil(logs.length / pageSize) + 1) {
-      // In this case we have to load more data and then append them.
-      loadLogs(page - 1, pageSize, logType).then((r) => {});
-    }
+    loadLogs(page, pageSize, logType).then((r) => {});
   };
 
   const handlePageSizeChange = async (size) => {
     localStorage.setItem('page-size', size + '');
     setPageSize(size);
     setActivePage(1);
-    loadLogs(0, size)
+    loadLogs(activePage, size)
       .then()
       .catch((reason) => {
         showError(reason);
@@ -607,52 +607,30 @@ const LogsTable = () => {
   };
 
   const refresh = async () => {
-    // setLoading(true);
     setActivePage(1);
     handleEyeClick();
-    await loadLogs(0, pageSize, logType);
+    await loadLogs(activePage, pageSize, logType);
   };
 
   const copyText = async (text) => {
     if (await copy(text)) {
       showSuccess('已复制：' + text);
     } else {
-      // setSearchKeyword(text);
       Modal.error({ title: '无法复制到剪贴板，请手动复制', content: text });
     }
   };
 
   useEffect(() => {
-    // console.log('default effect')
     const localPageSize =
       parseInt(localStorage.getItem('page-size')) || ITEMS_PER_PAGE;
     setPageSize(localPageSize);
-    loadLogs(0, localPageSize)
+    loadLogs(activePage, localPageSize)
       .then()
       .catch((reason) => {
         showError(reason);
       });
     handleEyeClick();
   }, []);
-
-  const searchLogs = async () => {
-    if (searchKeyword === '') {
-      // if keyword is blank, load files instead.
-      await loadLogs(0, pageSize);
-      setActivePage(1);
-      return;
-    }
-    setSearching(true);
-    const res = await API.get(`/api/log/self/search?keyword=${searchKeyword}`);
-    const { success, message, data } = res.data;
-    if (success) {
-      setLogs(data);
-      setActivePage(1);
-    } else {
-      showError(message);
-    }
-    setSearching(false);
-  };
 
   return (
     <>
@@ -752,7 +730,7 @@ const LogsTable = () => {
         <Table
           style={{ marginTop: 5 }}
           columns={columns}
-          dataSource={pageData}
+          dataSource={logs}
           pagination={{
             currentPage: activePage,
             pageSize: pageSize,
@@ -760,7 +738,7 @@ const LogsTable = () => {
             pageSizeOpts: [10, 20, 50, 100],
             showSizeChanger: true,
             onPageSizeChange: (size) => {
-              handlePageSizeChange(size).then();
+              handlePageSizeChange(size);
             },
             onPageChange: handlePageChange,
           }}
@@ -778,6 +756,8 @@ const LogsTable = () => {
           <Select.Option value='2'>消费</Select.Option>
           <Select.Option value='3'>管理</Select.Option>
           <Select.Option value='4'>系统</Select.Option>
+          <Select.Option value='5'>审核</Select.Option>
+          <Select.Option value='6'>签到</Select.Option>
         </Select>
       </Layout>
     </>

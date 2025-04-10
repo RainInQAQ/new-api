@@ -161,31 +161,31 @@ const EditUser = (props) => {
             <Typography.Text>用户名</Typography.Text>
           </div>
           <Input
-            label="用户名"
-            name="username"
+            label='用户名'
+            name='username'
             placeholder={'请输入新的用户名'}
             onChange={(value) => handleInputChange('username', value)}
             value={username}
-            autoComplete="new-password"
+            autoComplete='new-password'
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>密码</Typography.Text>
           </div>
           <Input
-            label="密码"
-            name="password"
+            label='密码'
+            name='password'
             type={'password'}
             placeholder={'请输入新的密码，最短 8 位'}
             onChange={(value) => handleInputChange('password', value)}
             value={password}
-            autoComplete="new-password"
+            autoComplete='new-password'
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>显示名称</Typography.Text>
           </div>
           <Input
-            label="显示名称"
-            name="display_name"
+            label='显示名称'
+            name='display_name'
             placeholder={'请输入新的显示名称'}
             onChange={(value) => handleInputChange('display_name', value)}
             value={display_name}
@@ -209,7 +209,7 @@ const EditUser = (props) => {
               </div>
               <Select
                 placeholder={'请选择分组'}
-                name="group"
+                name='group'
                 fluid
                 search
                 selection
@@ -217,7 +217,7 @@ const EditUser = (props) => {
                 additionLabel={'请在系统设置页面编辑分组倍率以添加新的分组：'}
                 onChange={(value) => handleInputChange('group', value)}
                 value={inputs.group}
-                autoComplete="new-password"
+                autoComplete='new-password'
                 optionList={groupOptions}
               />
               <div style={{ marginTop: 20 }}>
@@ -225,12 +225,12 @@ const EditUser = (props) => {
               </div>
               <Space>
                 <Input
-                  name="quota"
+                  name='quota'
                   placeholder={'请输入新的剩余额度'}
                   onChange={(value) => handleInputChange('quota', value)}
                   value={quota}
                   type={'number'}
-                  autoComplete="new-password"
+                  autoComplete='new-password'
                 />
                 <Button onClick={openAddQuotaModal}>添加额度</Button>
               </Space>
@@ -241,50 +241,50 @@ const EditUser = (props) => {
             <Typography.Text>已绑定的 GitHub 账户</Typography.Text>
           </div>
           <Input
-            name="github_id"
+            name='github_id'
             value={github_id}
-            autoComplete="new-password"
-            placeholder="此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改"
+            autoComplete='new-password'
+            placeholder='此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改'
             readonly
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>已绑定的 LINUX DO 账户</Typography.Text>
           </div>
           <Input
-            name="linuxdo_id"
+            name='linuxdo_id'
             value={linuxdo_id + '（' + linuxdo_level + '级）'}
-            autoComplete="new-password"
-            placeholder="此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改"
+            autoComplete='new-password'
+            placeholder='此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改'
             readonly
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>已绑定的微信账户</Typography.Text>
           </div>
           <Input
-            name="wechat_id"
+            name='wechat_id'
             value={wechat_id}
-            autoComplete="new-password"
-            placeholder="此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改"
+            autoComplete='new-password'
+            placeholder='此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改'
             readonly
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>已绑定的 Telegram 账户</Typography.Text>
           </div>
           <Input
-            name="telegram_id"
+            name='telegram_id'
             value={telegram_id}
-            autoComplete="new-password"
-            placeholder="此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改"
+            autoComplete='new-password'
+            placeholder='此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改'
             readonly
           />
           <div style={{ marginTop: 20 }}>
             <Typography.Text>已绑定的邮箱账户</Typography.Text>
           </div>
           <Input
-            name="email"
+            name='email'
             value={email}
-            autoComplete="new-password"
-            placeholder="此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改"
+            autoComplete='new-password'
+            placeholder='此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改'
             readonly
           />
         </Spin>

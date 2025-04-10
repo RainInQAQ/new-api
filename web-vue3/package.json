@@ -1,0 +1,43 @@
+{
+	"name": "web-vue3",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint:eslint": "eslint  --fix --ext .ts,.js,.vue ./src ",
+		"prettier": "prettier --write ."
+	},
+	"dependencies": {
+		"@element-plus/icons-vue": "^2.3.1",
+		"axios": "^1.7.7",
+		"sass": "^1.79.3",
+		"sass-loader": "^16.0.2",
+		"vite-plugin-eslint": "^1.8.1",
+		"vue": "^3.4.29",
+		"vue-router": "^4.4.5",
+		"vxe-pc-ui": "^4.2.8",
+		"vxe-table": "^4.7.83"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "7.3.1",
+		"@typescript-eslint/parser": "7.3.1",
+		"@vitejs/plugin-vue": "^5.0.5",
+		"eslint": "8.57.0",
+		"eslint-config-prettier": "9.1.0",
+		"eslint-define-config": "2.1.0",
+		"eslint-plugin-import": "2.29.1",
+		"eslint-plugin-node": "11.1.0",
+		"eslint-plugin-prettier": "5.1.3",
+		"eslint-plugin-promise": "6.1.1",
+		"eslint-plugin-vue": "9.23.0",
+		"globals": "^15.9.0",
+		"prettier": "^3.3.3",
+		"typescript": "5.4.5",
+		"vite": "5.2.10",
+		"vite-plugin-lazy-import": "^1.0.7",
+		"vue-eslint-parser": "9.4.2"
+	}
+}

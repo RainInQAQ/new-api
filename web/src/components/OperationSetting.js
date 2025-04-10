@@ -5,6 +5,7 @@ import SettingsDrawing from '../pages/Setting/Operation/SettingsDrawing.js';
 import SettingsSensitiveWords from '../pages/Setting/Operation/SettingsSensitiveWords.js';
 import SettingsLog from '../pages/Setting/Operation/SettingsLog.js';
 import SettingsDataDashboard from '../pages/Setting/Operation/SettingsDataDashboard.js';
+import SettingsSigning from '../pages/Setting/Operation/SettingsSigning.js';
 import SettingsMonitoring from '../pages/Setting/Operation/SettingsMonitoring.js';
 import SettingsCreditLimit from '../pages/Setting/Operation/SettingsCreditLimit.js';
 import SettingsMagnification from '../pages/Setting/Operation/SettingsMagnification.js';
@@ -23,6 +24,7 @@ const OperationSetting = () => {
     CompletionRatio: '',
     ModelPrice: '',
     GroupRatio: '',
+    UserUsableGroups: '',
     TopUpLink: '',
     ChatLink: '',
     ChatLink2: '', // 添加的新状态变量
@@ -53,6 +55,12 @@ const OperationSetting = () => {
     CensorshipProxyAddress: '',
     Censorship: '',
     MoralCensorshipEnabled: false,
+    AgreementContent: '',
+    UserAgreementEnabled: false,
+    SigningEnabled: false,
+    SigningQuota: '',
+    SigningLevel: '',
+    UpperQuota: '',
   });
 
   let [loading, setLoading] = useState(false);
@@ -66,6 +74,7 @@ const OperationSetting = () => {
         if (
           item.key === 'ModelRatio' ||
           item.key === 'GroupRatio' ||
+          item.key === 'UserUsableGroups' ||
           item.key === 'CompletionRatio' ||
           item.key === 'ModelPrice'
         ) {
@@ -108,6 +117,10 @@ const OperationSetting = () => {
         {/* 通用设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsGeneral options={inputs} refresh={onRefresh} />
+        </Card>
+        {/* 签到设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsSigning options={inputs} refresh={onRefresh} />
         </Card>
         {/* 绘图设置 */}
         <Card style={{ marginTop: '10px' }}>

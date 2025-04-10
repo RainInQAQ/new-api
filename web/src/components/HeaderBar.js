@@ -3,14 +3,23 @@ import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/User';
 import { useSetTheme, useTheme } from '../context/Theme';
 
-import { API, getLogo, getSystemName, showSuccess } from '../helpers';
+import { API, getLogo, getSystemName, isMobile, showError, showSuccess } from '../helpers';
 import '../index.css';
 
 import fireworks from 'react-fireworks';
 
-import { IconHelpCircle, IconKey, IconUser } from '@douyinfe/semi-icons';
+import {
+  IconHelpCircle,
+  IconHome,
+  IconHomeStroked,
+  IconKey,
+  IconNoteMoneyStroked,
+  IconPriceTag,
+  IconUser,
+} from '@douyinfe/semi-icons';
 import { Avatar, Dropdown, Layout, Nav, Switch } from '@douyinfe/semi-ui';
 import { stringToColor } from '../helpers/render';
+import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 
 // HeaderBar Buttons
 let headerButtons = [
@@ -20,6 +29,21 @@ let headerButtons = [
     to: '/about',
     icon: <IconHelpCircle />,
   },
+];
+
+let buttons = [
+  {
+    text: '首页',
+    itemKey: 'home',
+    to: '/',
+    // icon: <IconHomeStroked />,
+  },
+  // {
+  //   text: '模型价格',
+  //   itemKey: 'pricing',
+  //   to: '/pricing',
+  //   icon: <IconNoteMoneyStroked />,
+  // },
 ];
 
 if (localStorage.getItem('chat_link')) {
@@ -113,6 +137,7 @@ const HeaderBar = () => {
                 about: '/about',
                 login: '/login',
                 register: '/register',
+                home: '/',
               };
               return (
                 <Link
@@ -126,6 +151,23 @@ const HeaderBar = () => {
             selectedKeys={[]}
             // items={headerButtons}
             onSelect={(key) => {}}
+            header={
+              isMobile()
+                ? {
+                    logo: (
+                      <img
+                        src={logo}
+                        alt='logo'
+                        style={{ marginRight: '0.75em' }}
+                      />
+                    ),
+                  }
+                : {
+                    logo: <img src={logo} alt='logo' />,
+                    text: systemName,
+                  }
+            }
+            items={buttons}
             footer={
               <>
                 {isNewYear && (
@@ -144,15 +186,19 @@ const HeaderBar = () => {
                   </Dropdown>
                 )}
                 <Nav.Item itemKey={'about'} icon={<IconHelpCircle />} />
-                <Switch
-                  checkedText='🌞'
-                  size={'large'}
-                  checked={theme === 'dark'}
-                  uncheckedText='🌙'
-                  onChange={(checked) => {
-                    setTheme(checked);
-                  }}
-                />
+                <>
+                  {!isMobile() && (
+                    <Switch
+                      checkedText='🌞'
+                      size={'large'}
+                      checked={theme === 'dark'}
+                      uncheckedText='🌙'
+                      onChange={(checked) => {
+                        setTheme(checked);
+                      }}
+                    />
+                  )}
+                </>
                 {userState.user ? (
                   <>
                     <Dropdown
@@ -179,7 +225,7 @@ const HeaderBar = () => {
                     <Nav.Item
                       itemKey={'login'}
                       text={'登录'}
-                      icon={<IconKey />}
+                      // icon={<IconKey />}
                     />
                     <Nav.Item
                       itemKey={'register'}

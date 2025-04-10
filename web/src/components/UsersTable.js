@@ -146,6 +146,21 @@ const UsersTable = () => {
       },
     },
     {
+      title: '用户协议',
+      dataIndex: 'user_agreement',
+      render: (text, record, index) => {
+        return (
+          <div>
+            {record.user_agreement !== true ? (
+              <Tag color='red'>未同意</Tag>
+            ) : (
+              <Tag color='green'>已同意</Tag>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       title: '',
       dataIndex: 'operate',
       render: (text, record, index) => (

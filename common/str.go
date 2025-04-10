@@ -48,6 +48,11 @@ func StrToMap(str string) map[string]interface{} {
 	return m
 }
 
+func IsJsonStr(str string) bool {
+	var js map[string]interface{}
+	return json.Unmarshal([]byte(str), &js) == nil
+}
+
 func String2Int(str string) int {
 	num, err := strconv.Atoi(str)
 	if err != nil {

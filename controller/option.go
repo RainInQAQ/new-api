@@ -31,6 +31,23 @@ func GetOptions(c *gin.Context) {
 	return
 }
 
+func GetAgreementContent(c *gin.Context) {
+	var value = ""
+	common.OptionMapRWMutex.Lock()
+	for k, v := range common.OptionMap {
+		if strings.EqualFold(k, "AgreementContent") {
+			value = common.Interface2String(v)
+		}
+	}
+	common.OptionMapRWMutex.Unlock()
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    value,
+	})
+	return
+}
+
 func UpdateOption(c *gin.Context) {
 	var option model.Option
 	err := json.NewDecoder(c.Request.Body).Decode(&option)

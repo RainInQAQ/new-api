@@ -8,7 +8,7 @@ import {
 } from '../helpers';
 
 import { ITEMS_PER_PAGE } from '../constants';
-import { renderQuota } from '../helpers/render';
+import { renderGroup, renderQuota } from '../helpers/render';
 import {
   Button,
   Dropdown,
@@ -16,6 +16,7 @@ import {
   Modal,
   Popconfirm,
   Popover,
+  Space,
   SplitButtonGroup,
   Table,
   Tag,
@@ -119,7 +120,14 @@ const TokensTable = () => {
       dataIndex: 'status',
       key: 'status',
       render: (text, record, index) => {
-        return <div>{renderStatus(text, record.model_limits_enabled)}</div>;
+        return (
+          <div>
+            <Space>
+              {renderStatus(text, record.model_limits_enabled)}
+              {renderGroup(record.group)}
+            </Space>
+          </div>
+        );
       },
     },
     {
@@ -225,14 +233,14 @@ const TokensTable = () => {
                     onOpenLink('next-mj', record.key);
                   },
                 },
-                {
-                  node: 'item',
-                  key: 'lobe',
-                  name: 'Lobe Chat',
-                  onClick: () => {
-                    onOpenLink('lobe', record.key);
-                  },
-                },
+                // {
+                //   node: 'item',
+                //   key: 'lobe',
+                //   name: 'Lobe Chat',
+                //   onClick: () => {
+                //     onOpenLink('lobe', record.key);
+                //   },
+                // },
                 {
                   node: 'item',
                   key: 'ama',
@@ -425,7 +433,7 @@ const TokensTable = () => {
         url = `opencat://team/join?domain=${encodedServerAddress}&token=sk-${key}`;
         break;
       case 'lobe':
-        url = `https://chat-preview.lobehub.com/?settings={"keyVaults":{"openai":{"apiKey":"sk-${key}","baseURL":"${encodedServerAddress}"}}}`;
+        url = `https://chat-preview.lobehub.com/?settings={"keyVaults":{"openai":{"apiKey":"sk-${key}","baseURL":"${encodedServerAddress}/v1"}}}`;
         break;
       case 'next-mj':
         url =

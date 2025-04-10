@@ -90,6 +90,7 @@ func InitOptionMap() {
 	common.OptionMap["ModelRatio"] = common.ModelRatio2JSONString()
 	common.OptionMap["ModelPrice"] = common.ModelPrice2JSONString()
 	common.OptionMap["GroupRatio"] = common.GroupRatio2JSONString()
+	common.OptionMap["UserUsableGroups"] = common.UserUsableGroups2JSONString()
 	common.OptionMap["CompletionRatio"] = common.CompletionRatio2JSONString()
 	common.OptionMap["TopUpLink"] = common.TopUpLink
 	common.OptionMap["ChatLink"] = common.ChatLink
@@ -114,6 +115,12 @@ func InitOptionMap() {
 	common.OptionMap["CensorshipProxyAddress"] = common.CensorshipProxyAddress
 	common.OptionMap["Censorship"] = common.Censorship
 	common.OptionMap["MoralCensorshipEnabled"] = strconv.FormatBool(common.MoralCensorshipEnabled)
+	common.OptionMap["AgreementContent"] = common.AgreementContent
+	common.OptionMap["UserAgreementEnabled"] = strconv.FormatBool(common.UserAgreementEnabled)
+	common.OptionMap["SigningEnabled"] = strconv.FormatBool(common.SigningEnabled)
+	common.OptionMap["SigningQuota"] = strconv.Itoa(common.SigningQuota)
+	common.OptionMap["SigningLevel"] = strconv.Itoa(common.SigningLevel)
+	common.OptionMap["UpperQuota"] = strconv.Itoa(common.UpperQuota)
 	common.OptionMapRWMutex.Unlock()
 	loadOptionsFromDatabase()
 }
@@ -238,6 +245,10 @@ func updateOptionMap(key string, value string) (err error) {
 			common.BalanceRecoveryEnabled = boolValue
 		case "MoralCensorshipEnabled":
 			common.MoralCensorshipEnabled = boolValue
+		case "UserAgreementEnabled":
+			common.UserAgreementEnabled = boolValue
+		case "SigningEnabled":
+			common.SigningEnabled = boolValue
 
 		}
 	}
@@ -323,6 +334,8 @@ func updateOptionMap(key string, value string) (err error) {
 		err = common.UpdateModelRatioByJSONString(value)
 	case "GroupRatio":
 		err = common.UpdateGroupRatioByJSONString(value)
+	case "UserUsableGroups":
+		err = common.UpdateUserUsableGroupsByJSONString(value)
 	case "CompletionRatio":
 		err = common.UpdateCompletionRatioByJSONString(value)
 	case "ModelPrice":
@@ -345,6 +358,14 @@ func updateOptionMap(key string, value string) (err error) {
 		common.CensorshipProxyAddress = value
 	case "Censorship":
 		common.Censorship = value
+	case "AgreementContent":
+		common.AgreementContent = value
+	case "SigningQuota":
+		common.SigningQuota, _ = strconv.Atoi(value)
+	case "SigningLevel":
+		common.SigningLevel, _ = strconv.Atoi(value)
+	case "UpperQuota":
+		common.UpperQuota, _ = strconv.Atoi(value)
 	}
 	return err
 }

@@ -19,6 +19,8 @@ export default function GeneralSettings(props) {
     DisplayInCurrencyEnabled: false,
     DisplayTokenStatEnabled: false,
     DefaultCollapseSidebar: false,
+    AgreementContent: '',
+    UserAgreementEnabled: false
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);

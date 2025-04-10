@@ -1,0 +1,38 @@
+@font-face {
+  font-family: zpix;
+  src: url('./fonts/zpix.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: pixel;
+  src: url('./fonts/pixel.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: zpix, sans-serif;
+  //font-family: pixel, sans-serif;
+}
+html,body {
+  height: 100%;
+  width: 100%;
+}
+body{
+  background: linear-gradient(to right, #F4F2F0, #EDE7E3, #F4F2F0);
+}
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+/*
+去除a标签默认样式
+ */
+a,.router-link-active {
+  text-decoration: none;
+  color: inherit;
+}

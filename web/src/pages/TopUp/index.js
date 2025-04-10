@@ -28,6 +28,7 @@ const TopUp = () => {
   const [topUpLink, setTopUpLink] = useState('');
   const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [userQuota, setUserQuota] = useState(0);
+  const [userUpperQuota, setUserUpperQuota] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [open, setOpen] = useState(false);
@@ -133,6 +134,7 @@ const TopUp = () => {
     const { success, message, data } = res.data;
     if (success) {
       setUserQuota(data.quota);
+      setUserUpperQuota(data.user_upper_quota)
     } else {
       showError(message);
     }
@@ -220,7 +222,7 @@ const TopUp = () => {
           >
             <Card style={{ width: '500px', padding: '20px' }}>
               <Title level={3} style={{ textAlign: 'center' }}>
-                余额 {renderQuota(userQuota)}
+                余额 {renderQuota(userQuota)}/{renderQuota(userUpperQuota)}
               </Title>
               <div style={{ marginTop: 20 }}>
                 <Divider>兑换余额</Divider>

@@ -129,6 +129,8 @@ var RelayTimeout = GetEnvOrDefault("RELAY_TIMEOUT", 0) // unit is second
 
 var GeminiSafetySetting = GetEnvOrDefaultString("GEMINI_SAFETY_SETTING", "BLOCK_NONE")
 
+// https://docs.cohere.com/docs/safety-modes Type; NONE/CONTEXTUAL/STRICT
+var CohereSafetySetting = GetEnvOrDefaultString("COHERE_SAFETY_SETTING", "NONE")
 var BalanceRecoveryEnabled = false
 
 var CensorshipProxyAddress = ""
@@ -136,6 +138,18 @@ var CensorshipProxyAddress = ""
 var Censorship = ""
 
 var MoralCensorshipEnabled = false
+
+var AgreementContent = ""
+
+var UserAgreementEnabled = false
+
+var SigningEnabled = false
+
+var SigningQuota = 250000
+
+var SigningLevel = 1
+
+var UpperQuota = 5000000
 
 const (
 	RequestIdKey = "X-Oneapi-Request-Id"
@@ -244,6 +258,8 @@ const (
 	ChannelTypeDify           = 37
 	ChannelTypeJina           = 38
 	ChannelCloudflare         = 39
+	ChannelTypeSiliconFlow    = 40
+	ChannelTypeVertexAi       = 41
 
 	ChannelTypeDummy // this one is only for count, do not add any channel after this
 
@@ -290,4 +306,6 @@ var ChannelBaseURLs = []string{
 	"",                                          //37
 	"https://api.jina.ai",                       //38
 	"https://api.cloudflare.com",                //39
+	"https://api.siliconflow.cn",                //40
+	"",                                          //41
 }

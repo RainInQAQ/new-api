@@ -66,7 +66,6 @@ export default function SettingsSensitiveWords(props) {
     setInputsRow(structuredClone(currentInputs));
     refForm.current.setValues(currentInputs);
   }, [props.options]);
-
   return (
     <>
       <Spin spinning={loading}>

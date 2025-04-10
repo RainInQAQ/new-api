@@ -41,11 +41,12 @@ type User struct {
 	SigningPeriod      *int           `json:"signing_period" gorm:"type:int;default:0"` // 签到周期，满7重置为0
 	CreatedAt          time.Time      `json:"created_at" gorm:"index"`                  // 用户注册日期
 	UpdatedAt          time.Time      `json:"updated_at" gorm:"->:false;<-:create"`
-	LastSignIn         time.Time      `json:"last_signIn" gorm:"index"`             // 最后登录时间
-	LastRequestTime    int64          `json:"last_request_time" gorm:"bigint"`      // 最后请求时间
-	IncrementState     *bool          `json:"increment_state" gorm:"default:false"` // 增幅状态
-	MessagePenetration string         `json:"message_penetration"`                  // 消息穿透
-	UserAgreement      bool           `json:"user_agreement"`                       // 是否已同意用户协议
+	LastSignIn         time.Time      `json:"last_signIn" gorm:"index"`                   // 最后登录时间
+	LastRequestTime    int64          `json:"last_request_time" gorm:"bigint"`            // 最后请求时间
+	IncrementState     *bool          `json:"increment_state" gorm:"default:false"`       // 增幅状态
+	MessagePenetration string         `json:"message_penetration"`                        // 消息穿透
+	UserAgreement      bool           `json:"user_agreement"`                             // 是否已同意用户协议
+	UserUpperQuota     int            `json:"user_upper_quota" gorm:"type:int;default:0"` // 用户额度上限
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
 }
 
@@ -291,6 +292,16 @@ func (user *User) UpdateUserLastRequestTime(lastRequestTime int64) error {
 			_ = common.RedisSet(fmt.Sprintf("user_group:%d", user.Id), user.Group, time.Duration(UserId2GroupCacheSeconds)*time.Second)
 			_ = common.RedisSet(fmt.Sprintf("user_quota:%d", user.Id), strconv.Itoa(user.Quota), time.Duration(UserId2QuotaCacheSeconds)*time.Second)
 			_ = common.RedisSetLastRequestTime(fmt.Sprintf("last_request_time:%d", user.Id), user.LastRequestTime, time.Duration(UserId2QuotaCacheSeconds)*time.Second)
+		}
+	}
+	return err
+}
+
+func (user *User) UpdateUserAgreement(UserAgreement bool) error {
+	err := DB.Model(user).Update("UserAgreement", UserAgreement).Error
+	if err == nil {
+		if common.RedisEnabled {
+			_ = common.RedisSet(fmt.Sprintf("user_agreement:%d", user.Id), strconv.FormatBool(user.UserAgreement), time.Duration(UserId2GroupCacheSeconds)*time.Second)
 		}
 	}
 	return err

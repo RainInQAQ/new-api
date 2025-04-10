@@ -41,17 +41,17 @@ func relayHandler(c *gin.Context, relayMode int) *dto.OpenAIErrorWithStatusCode 
 	return err
 }
 
-// 消息处理前置操作
+// RelayPreview 消息处理前置操作
 func RelayPreview(ctx *gin.Context, userId int) bool {
 	return ModerateText(ctx, userId)
 }
 
-// 审核参数
+// ModerationBody 审核参数
 type ModerationBody struct {
 	Input string `json:"input"`
 }
 
-// 审核结果
+// ModerationResponse 审核结果
 type ModerationResponse struct {
 	ID      string   `json:"id"`
 	Model   string   `json:"model"`
@@ -92,53 +92,90 @@ type CategoryScores struct {
 	Violence              float64 `json:"violence"`
 }
 
-// 文字审查
 func ModerateText(ctx *gin.Context, userId int) bool {
-	content, _ := relay.BuildQuestion(ctx)
+	content, err := relay.BuildQuestion(ctx)
+	if err != nil {
+		log.Printf("Error building question: %v", err)
+		return false
+	}
+
 	relayInfo := relaycommon.GenRelayInfo(ctx)
+	relayInfo.BaseUrl = common.CensorshipProxyAddress
+	relayInfo.ApiKey = common.Censorship
 	relayInfo.RequestURLPath = "/v1/moderations"
+
 	adaptor := relay.GetAdaptor(relayInfo.ApiType)
 	fullRequestURL, err := adaptor.GetRequestURL(relayInfo)
+	if err != nil {
+		log.Printf("Error getting request URL: %v", err)
+		return false
+	}
+
 	adaptor.Init(relayInfo)
-	var requestBody io.Reader
-	// 审查结果
-	moderateResult := true
-	if err == nil {
-		moderationBody := ModerationBody{
-			Input: content,
-		}
-		// 将审核参数对象编码为JSON
-		jsonData, err := json.Marshal(moderationBody)
-		if err == nil {
-			requestBody = bytes.NewBuffer(jsonData)
-			req, _ := http.NewRequest(ctx.Request.Method, fullRequestURL, requestBody)
-			_ = adaptor.SetupRequestHeader(ctx, req, relayInfo)
-			resp, _ := service.GetHttpClient().Do(req)
-			var moderationResponse ModerationResponse
-			if err := json.NewDecoder(resp.Body).Decode(&moderationResponse); err != nil {
-				log.Fatalf("Error decoding JSON response: %v", err)
-			}
-			// 遍历moderationResponse.Results，判断是否有违规内容
-			for _, result := range moderationResponse.Results {
-				// 任何内容违规都返回false
-				if result.Flagged {
-					moderateResult = false
-				}
-			}
+
+	moderationBody := ModerationBody{Input: content}
+	jsonData, err := json.Marshal(moderationBody)
+	if err != nil {
+		log.Printf("Error marshalling moderation body: %v", err)
+		return false
+	}
+
+	requestBody := bytes.NewBuffer(jsonData)
+	req, err := http.NewRequest(ctx.Request.Method, fullRequestURL, requestBody)
+	if err != nil {
+		log.Printf("Error creating new request: %v", err)
+		return false
+	}
+
+	if err := adaptor.SetupRequestHeader(ctx, req, relayInfo); err != nil {
+		log.Printf("Error setting up request header: %v", err)
+		return false
+	}
+
+	resp, err := service.GetHttpClient().Do(req)
+	if err != nil {
+		log.Printf("Error performing HTTP request: %v", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	var moderationResponse ModerationResponse
+	if err := json.NewDecoder(resp.Body).Decode(&moderationResponse); err != nil {
+		log.Printf("Error decoding JSON response: %v", err)
+		return false
+	}
+
+	for _, result := range moderationResponse.Results {
+		if result.Flagged {
+			message := fmt.Sprintf("请求:\n %s \n内容触发审核规则，已记录用户行为", content)
+			model.RecordCensorshipLog(ctx, userId, relayInfo.ChannelId, 0, 0, relayInfo.OriginModelName,
+				ctx.GetString("token_name"), 0, message, relayInfo.TokenId, 0, 0, relayInfo.IsStream, nil, content)
+			return false
 		}
 	}
-	return moderateResult
+
+	return true
 }
+
 func Relay(c *gin.Context) {
+
 	userId := c.GetInt("id")
 	userById, err := model.GetUserById(userId, false)
-	// 前置操作（例如审查）
-	if !RelayPreview(c, userId) {
-		// TODO: 将审查出的违规结果返回给用户
-		return
+
+	if common.MoralCensorshipEnabled && "" != common.CensorshipProxyAddress && "" != common.Censorship {
+		if !RelayPreview(c, userId) {
+			c.String(http.StatusOK, "触发道德审核!")
+			return
+		}
 	}
+
 	if err != nil {
 		sendResponse(c, http.StatusInternalServerError, err.Error(), false)
+		return
+	}
+
+	if !userById.UserAgreement {
+		c.String(http.StatusOK, "我们更新了用户(使用)协议，请前往：https://oai.itsfurry.com/setting?tab=personal 查看，同意后恢复使用，谢谢配合。")
 		return
 	}
 	if userById.MessagePenetration != "" {
@@ -239,6 +276,9 @@ func shouldRetry(c *gin.Context, openaiErr *dto.OpenAIErrorWithStatusCode, retry
 	if openaiErr == nil {
 		return false
 	}
+	if openaiErr.LocalError {
+		return false
+	}
 	if retryTimes <= 0 {
 		return false
 	}
@@ -267,9 +307,6 @@ func shouldRetry(c *gin.Context, openaiErr *dto.OpenAIErrorWithStatusCode, retry
 	}
 	if openaiErr.StatusCode == 408 {
 		// azure处理超时不重试
-		return false
-	}
-	if openaiErr.LocalError {
 		return false
 	}
 	if openaiErr.StatusCode/100 == 2 {

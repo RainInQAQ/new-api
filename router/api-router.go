@@ -41,14 +41,17 @@ func SetApiRouter(router *gin.Engine) {
 			userRoute.POST("/login", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.Login)
 			//userRoute.POST("/tokenlog", middleware.CriticalRateLimit(), controller.TokenLog)
 			userRoute.GET("/logout", controller.Logout)
+			userRoute.GET("/groups", controller.GetUserGroups)
 			userRoute.POST("/signing", middleware.UserAuth(), controller.Signing)
 
 			selfRoute := userRoute.Group("/")
 			selfRoute.Use(middleware.UserAuth())
 			{
 				selfRoute.GET("/self", controller.GetSelf)
+				selfRoute.GET("/agreement_content", controller.GetAgreementContent)
 				selfRoute.GET("/models", controller.GetUserModels)
 				selfRoute.PUT("/self", controller.UpdateSelf)
+				selfRoute.PUT("/user_agreement", controller.UpdateUserAgreement)
 				selfRoute.DELETE("/self", controller.DeleteSelf)
 				selfRoute.GET("/token", controller.GenerateAccessToken)
 				selfRoute.GET("/aff", controller.GetAffCode)

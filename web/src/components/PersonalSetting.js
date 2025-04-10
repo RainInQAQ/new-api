@@ -6,7 +6,8 @@ import {
   isRoot,
   showError,
   showInfo,
-  showSuccess, timestamp2string
+  showSuccess,
+  timestamp2string
 } from '../helpers';
 import Turnstile from 'react-turnstile';
 import { UserContext } from '../context/User';
@@ -64,17 +65,8 @@ const PersonalSetting = () => {
   const [openTransfer, setOpenTransfer] = useState(false);
   const [showUserAgreementModal, setShowUserAgreementModal] = useState(false);
   const [transferAmount, setTransferAmount] = useState(0);
-  const userAgreementContent = `
-# 用户协议
-
-这是用户协议的内容。你可以在这里详细描述用户协议的条款和条件。
-
-## 条款一
-详细描述条款一的内容。
-
-## 条款二
-详细描述条款二的内容。
-`;
+  const [userAgreementContent, setUserAgreementContent] = useState([]);
+  const [userAgreement, setUserAgreement] = useState(true);
 
 
   useEffect(() => {
@@ -98,6 +90,7 @@ const PersonalSetting = () => {
     });
     loadModels().then();
     getAffLink().then();
+    getAgreementContent().then();
     setTransferAmount(getQuotaPerUnit());
   }, []);
 
@@ -146,6 +139,16 @@ const PersonalSetting = () => {
     const { success, message, data } = res.data;
     if (success) {
       userDispatch({ type: 'login', payload: data });
+    } else {
+      showError(message);
+    }
+  };
+
+  const getAgreementContent = async () => {
+    let res = await API.get(`/api/user/agreement_content`);
+    const { success, message, data } = res.data;
+    if (success) {
+      setUserAgreementContent(data)
     } else {
       showError(message);
     }
@@ -245,17 +248,23 @@ const PersonalSetting = () => {
   };
 
   const updateUserAgreementStatus = async () => {
-    const res = await API.put(`/api/user/self`, {
-      password: inputs.set_new_password,
+    if (userState.user?.user_agreement === true) {
+      showError('你已经同意过了~');
+      setShowUserAgreementModal(false);
+      return;
+    }
+    const res = await API.put(`/api/user/user_agreement`, {
+      id: userState?.user?.id,
+      user_agreement: userAgreement
     });
     const { success, message } = res.data;
     if (success) {
-      showSuccess('密码修改成功！');
-      setShowWeChatBindModal(false);
+      showSuccess('已同意！');
+      setShowUserAgreementModal(false);
+      getUserData().then();
     } else {
       showError(message);
     }
-    setShowChangePasswordModal(false);
   };
 
   const sendVerificationCode = async () => {
@@ -426,7 +435,7 @@ const PersonalSetting = () => {
                   </Descriptions.Item>
                   <Descriptions.Item itemKey="用户协议">
                     <span style={{ color: 'rgba(var(--semi-red-5), 1)' }}>
-                      {userState.user?.request_count == 38 ? '已同意' : '未同意'}
+                      {userState.user?.user_agreement === true ? '已同意' : '未同意'}
                     </span>
                     <Button
                       type={'secondary'}
